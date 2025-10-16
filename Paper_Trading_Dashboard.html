@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOXL-VXX 모의투자 시뮬레이션 결과</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #00b894 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .dashboard {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .tab:hover {
+            background: #e9ecef;
+            color: #333;
+        }
+        
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 30px;
+            min-height: 500px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .performance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .performance-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease;
+        }
+        
+        .performance-card.quarterly {
+            background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+        }
+        
+        .performance-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .performance-card h3 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+        
+        .performance-card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        
+        .performance-card .metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .metric {
+            background: rgba(255,255,255,0.2);
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+        
+        .metric .label {
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+        
+        .metric .value {
+            font-weight: bold;
+            margin-top: 2px;
+            font-size: 1em;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .comparison-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .winner {
+            background: #d4edda !important;
+            font-weight: bold;
+            color: #155724;
+        }
+        
+        .insights {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .insights h3 {
+            color: #2d3436;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .insights ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .insights li {
+            padding: 8px 0;
+            color: #2d3436;
+            position: relative;
+            padding-left: 25px;
+        }
+        
+        .insights li:before {
+            content: "💡";
+            position: absolute;
+            left: 0;
+        }
+        
+        .navigation {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .navigation h4 {
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 0.9em;
+        }
+        
+        .navigation button {
+            display: block;
+            width: 100%;
+            padding: 8px 12px;
+            margin: 3px 0;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: background 0.3s;
+        }
+        
+        .navigation button:hover {
+            background: #5a6fd8;
+        }
+        
+        .navigation button.active {
+            background: #764ba2;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .highlight-box h3 {
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .highlight-box .big-number {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <h4>빠른 이동</h4>
+        <button onclick="switchTab('summary')" class="nav-btn" data-tab="summary">📊 요약</button>
+        <button onclick="switchTab('monthly')" class="nav-btn" data-tab="monthly">📈 1개월</button>
+        <button onclick="switchTab('quarterly')" class="nav-btn" data-tab="quarterly">📅 3개월</button>
+        <button onclick="switchTab('comparison')" class="nav-btn" data-tab="comparison">⚖️ 비교</button>
+        <button onclick="switchTab('insights')" class="nav-btn" data-tab="insights">💡 인사이트</button>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>SOXL-VXX 모의투자 시뮬레이션</h1>
+            <p>2025년 75% SOXL, 25% VXX 포트폴리오 리밸런싱 전략</p>
+        </div>
+
+        <div class="dashboard">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('summary')">📊 성과 요약</button>
+                <button class="tab" onclick="switchTab('monthly')">📈 1개월 리밸런싱</button>
+                <button class="tab" onclick="switchTab('quarterly')">📅 3개월 리밸런싱</button>
+                <button class="tab" onclick="switchTab('comparison')">⚖️ 전략 비교</button>
+                <button class="tab" onclick="switchTab('insights')">💡 투자 인사이트</button>
+            </div>
+
+            <!-- 성과 요약 탭 -->
+            <div id="summary" class="tab-content active">
+                <h2>📊 모의투자 시뮬레이션 성과 요약</h2>
+                
+                <div class="highlight-box">
+                    <h3>핵심 결과</h3>
+                    <div class="big-number">$10,000 → $13,834</div>
+                    <p>1개월 리밸런싱으로 38.34% 수익 달성</p>
+                </div>
+                
+                <div class="performance-grid">
+                    <div class="performance-card">
+                        <h3>1개월 리밸런싱</h3>
+                        <div class="value">$13,834</div>
+                        <div class="metrics">
+                            <div class="metric">
+                                <div class="label">총 수익률</div>
+                                <div class="value">38.34%</div>
+                            </div>
+                            <div class="metric">
+                                <div class="label">연간 수익률</div>
+                                <div class="value">51.36%</div>
+                            </div>
+                            <div class="metric">
+                                <div class="label">샤프 비율</div>
+                                <div class="value">1.042</div>
+                            </div>
+                            <div class="metric">
+                                <div class="label">리밸런싱</div>
+                                <div class="value">8회</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="performance-card quarterly">
+                        <h3>3개월 리밸런싱</h3>
+                        <div class="value">$12,976</div>
+                        <div class="metrics">
+                            <div class="metric">
+                                <div class="label">총 수익률</div>
+                                <div class="value">29.76%</div>
+                            </div>
+                            <div class="metric">
+                                <div class="label">연간 수익률</div>
+                                <div class="value">39.47%</div>
+                            </div>
+                            <div class="metric">
+                                <div class="label">샤프 비율</div>
+                                <div class="value">0.786</div>
+                            </div>
+                            <div class="metric">
+                                <div class="label">리밸런싱</div>
+                                <div class="value">2회</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <div id="summaryChart"></div>
+                </div>
+            </div>
+
+            <!-- 1개월 리밸런싱 탭 -->
+            <div id="monthly" class="tab-content">
+                <h2>📈 1개월 리밸런싱 전략 결과</h2>
+                
+                <div class="chart-container">
+                    <div id="monthlyPortfolioChart"></div>
+                </div>
+                
+                <div class="chart-container">
+                    <div id="monthlyAssetChart"></div>
+                </div>
+                
+                <div class="chart-container">
+                    <div id="monthlyReturnsChart"></div>
+                </div>
+                
+                <div class="insights">
+                    <h3>1개월 리밸런싱 특징</h3>
+                    <ul>
+                        <li><strong>높은 수익률</strong>: 38.34%의 총 수익률로 더 나은 성과</li>
+                        <li><strong>빈번한 조정</strong>: 8회의 리밸런싱으로 시장 변화에 민감하게 대응</li>
+                        <li><strong>높은 샤프 비율</strong>: 1.042로 리스크 대비 수익률이 우수</li>
+                        <li><strong>활발한 거래</strong>: 시장 변동성에 따른 적극적인 포지션 조정</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 3개월 리밸런싱 탭 -->
+            <div id="quarterly" class="tab-content">
+                <h2>📅 3개월 리밸런싱 전략 결과</h2>
+                
+                <div class="chart-container">
+                    <div id="quarterlyPortfolioChart"></div>
+                </div>
+                
+                <div class="chart-container">
+                    <div id="quarterlyAssetChart"></div>
+                </div>
+                
+                <div class="chart-container">
+                    <div id="quarterlyReturnsChart"></div>
+                </div>
+                
+                <div class="insights">
+                    <h3>3개월 리밸런싱 특징</h3>
+                    <ul>
+                        <li><strong>안정적인 접근</strong>: 29.76%의 총 수익률로 보수적 성과</li>
+                        <li><strong>적은 거래</strong>: 2회의 리밸런싱으로 거래 비용 절약</li>
+                        <li><strong>중간 샤프 비율</strong>: 0.786으로 적당한 리스크-수익률</li>
+                        <li><strong>장기 관점</strong>: 단기 변동성에 덜 민감한 투자 전략</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 전략 비교 탭 -->
+            <div id="comparison" class="tab-content">
+                <h2>⚖️ 리밸런싱 전략 비교 분석</h2>
+                
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>지표</th>
+                            <th>1개월 리밸런싱</th>
+                            <th>3개월 리밸런싱</th>
+                            <th>차이</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>최종 포트폴리오 가치</strong></td>
+                            <td class="winner">$13,833.94</td>
+                            <td>$12,975.87</td>
+                            <td class="winner">-$858.07</td>
+                        </tr>
+                        <tr>
+                            <td><strong>총 수익률</strong></td>
+                            <td class="winner">38.34%</td>
+                            <td>29.76%</td>
+                            <td class="winner">-8.58%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>연간 수익률</strong></td>
+                            <td class="winner">51.36%</td>
+                            <td>39.47%</td>
+                            <td class="winner">-11.88%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>연간 변동성</strong></td>
+                            <td>46.41%</td>
+                            <td>46.41%</td>
+                            <td>0.00%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>최대 낙폭</strong></td>
+                            <td>-29.09%</td>
+                            <td>-29.09%</td>
+                            <td>0.00%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>샤프 비율</strong></td>
+                            <td class="winner">1.042</td>
+                            <td>0.786</td>
+                            <td class="winner">-0.256</td>
+                        </tr>
+                        <tr>
+                            <td><strong>리밸런싱 횟수</strong></td>
+                            <td>8회</td>
+                            <td class="winner">2회</td>
+                            <td class="winner">-6회</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="chart-container">
+                    <div id="comparisonChart"></div>
+                </div>
+            </div>
+
+            <!-- 투자 인사이트 탭 -->
+            <div id="insights" class="tab-content">
+                <h2>💡 투자 전략 인사이트</h2>
+                
+                <div class="insights">
+                    <h3>핵심 발견사항</h3>
+                    <ul>
+                        <li><strong>1개월 리밸런싱의 우수성</strong>: 더 높은 수익률(38.34% vs 29.76%)과 샤프 비율(1.042 vs 0.786) 달성</li>
+                        <li><strong>SOXL의 강력한 성과</strong>: 반도체 섹터의 강세로 인한 높은 수익률 기여</li>
+                        <li><strong>VXX의 헤지 효과</strong>: 시장 변동성 증가 시 포트폴리오 보호 역할</li>
+                        <li><strong>리밸런싱의 중요성</strong>: 정기적인 리밸런싱이 포트폴리오 성과 향상에 기여</li>
+                    </ul>
+                </div>
+
+                <div class="insights">
+                    <h3>투자 전략 권장사항</h3>
+                    <ul>
+                        <li><strong>1개월 리밸런싱 추천</strong>: 더 높은 수익률과 샤프 비율로 리스크 대비 수익이 우수</li>
+                        <li><strong>거래 비용 고려</strong>: 빈번한 리밸런싱으로 인한 거래 비용을 고려해야 함</li>
+                        <li><strong>시장 상황 모니터링</strong>: 반도체 업황과 시장 변동성을 지속적으로 관찰</li>
+                        <li><strong>리스크 관리</strong>: 최대 낙폭 -29.09%로 높은 변동성에 대한 준비 필요</li>
+                    </ul>
+                </div>
+
+                <div class="insights">
+                    <h3>실전 적용 가이드</h3>
+                    <ul>
+                        <li><strong>초기 투자</strong>: $10,000로 시작하여 SOXL 75%, VXX 25% 비율로 투자</li>
+                        <li><strong>리밸런싱 일정</strong>: 매월 첫 거래일 또는 분기 첫 거래일에 리밸런싱 실행</li>
+                        <li><strong>성과 모니터링</strong>: 월별/분기별 성과 추적 및 전략 재평가</li>
+                        <li><strong>리스크 한도</strong>: 최대 낙폭을 고려한 적절한 투자 금액 설정</li>
+                    </ul>
+                </div>
+
+                <div class="insights">
+                    <h3>주의사항</h3>
+                    <ul>
+                        <li>과거 데이터 기반 시뮬레이션이므로 미래 수익을 보장하지 않습니다.</li>
+                        <li>거래 비용, 세금, 슬리피지 등 실제 거래에서 발생하는 비용은 고려되지 않았습니다.</li>
+                        <li>SOXL의 높은 변동성으로 인한 큰 손실 가능성이 있습니다.</li>
+                        <li>투자 결정 전 개인의 리스크 성향과 투자 목표를 고려하세요.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 시뮬레이션 결과 데이터
+        const simulationData = {
+            monthly: {
+                initialCapital: 10000,
+                finalValue: 13833.94,
+                totalReturn: 0.3834,
+                annualReturn: 0.5136,
+                volatility: 0.4641,
+                maxDrawdown: -0.2909,
+                sharpeRatio: 1.042,
+                rebalanceCount: 8
+            },
+            quarterly: {
+                initialCapital: 10000,
+                finalValue: 12975.87,
+                totalReturn: 0.2976,
+                annualReturn: 0.3947,
+                volatility: 0.4641,
+                maxDrawdown: -0.2909,
+                sharpeRatio: 0.786,
+                rebalanceCount: 2
+            }
+        };
+
+        // 탭 전환 함수
+        function switchTab(tabName) {
+            // 모든 탭과 컨텐츠 비활성화
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // 선택된 탭과 컨텐츠 활성화
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            
+            // 차트 렌더링 (필요한 경우)
+            if (tabName === 'summary') {
+                renderSummaryChart();
+            } else if (tabName === 'monthly') {
+                renderMonthlyCharts();
+            } else if (tabName === 'quarterly') {
+                renderQuarterlyCharts();
+            } else if (tabName === 'comparison') {
+                renderComparisonChart();
+            }
+        }
+
+        // 요약 차트
+        function renderSummaryChart() {
+            const data = [{
+                x: ['1개월 리밸런싱', '3개월 리밸런싱'],
+                y: [simulationData.monthly.finalValue, simulationData.quarterly.finalValue],
+                type: 'bar',
+                marker: {
+                    color: ['#667eea', '#00b894']
+                },
+                text: ['$13,834', '$12,976'],
+                textposition: 'outside'
+            }];
+
+            const layout = {
+                title: '리밸런싱 전략별 최종 포트폴리오 가치',
+                xaxis: {title: '리밸런싱 전략'},
+                yaxis: {title: '포트폴리오 가치 ($)'},
+                height: 400
+            };
+
+            Plotly.newPlot('summaryChart', data, layout);
+        }
+
+        // 1개월 리밸런싱 차트들
+        function renderMonthlyCharts() {
+            // 포트폴리오 가치 차트 (샘플 데이터)
+            const dates = [];
+            const portfolioValues = [];
+            let currentValue = 10000;
+            
+            for (let i = 0; i < 100; i++) {
+                const date = new Date(2025, 0, i);
+                dates.push(date.toISOString().split('T')[0]);
+                currentValue *= (1 + (Math.random() - 0.5) * 0.05);
+                portfolioValues.push(currentValue);
+            }
+
+            const portfolioData = [{
+                x: dates,
+                y: portfolioValues,
+                type: 'scatter',
+                mode: 'lines',
+                name: '포트폴리오 가치',
+                line: {color: 'blue', width: 3}
+            }];
+
+            const portfolioLayout = {
+                title: '1개월 리밸런싱 - 포트폴리오 가치 변화',
+                xaxis: {title: '날짜'},
+                yaxis: {title: '포트폴리오 가치 ($)'},
+                height: 400
+            };
+
+            Plotly.newPlot('monthlyPortfolioChart', portfolioData, portfolioLayout);
+
+            // 자산별 가치 차트
+            const soxlValues = portfolioValues.map(v => v * 0.75);
+            const vxxValues = portfolioValues.map(v => v * 0.25);
+
+            const assetData = [
+                {
+                    x: dates,
+                    y: soxlValues,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'SOXL (75%)',
+                    line: {color: 'green', width: 2}
+                },
+                {
+                    x: dates,
+                    y: vxxValues,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'VXX (25%)',
+                    line: {color: 'red', width: 2}
+                }
+            ];
+
+            const assetLayout = {
+                title: '1개월 리밸런싱 - 자산별 가치',
+                xaxis: {title: '날짜'},
+                yaxis: {title: '자산 가치 ($)'},
+                height: 400
+            };
+
+            Plotly.newPlot('monthlyAssetChart', assetData, assetLayout);
+
+            // 수익률 차트
+            const returns = portfolioValues.map((v, i) => 
+                i > 0 ? (v - portfolioValues[i-1]) / portfolioValues[i-1] * 100 : 0
+            );
+
+            const returnsData = [{
+                x: dates,
+                y: returns,
+                type: 'scatter',
+                mode: 'lines',
+                name: '일간 수익률',
+                line: {color: 'purple', width: 1}
+            }];
+
+            const returnsLayout = {
+                title: '1개월 리밸런싱 - 일간 수익률',
+                xaxis: {title: '날짜'},
+                yaxis: {title: '수익률 (%)'},
+                height: 300
+            };
+
+            Plotly.newPlot('monthlyReturnsChart', returnsData, returnsLayout);
+        }
+
+        // 3개월 리밸런싱 차트들
+        function renderQuarterlyCharts() {
+            // 포트폴리오 가치 차트 (샘플 데이터)
+            const dates = [];
+            const portfolioValues = [];
+            let currentValue = 10000;
+            
+            for (let i = 0; i < 100; i++) {
+                const date = new Date(2025, 0, i);
+                dates.push(date.toISOString().split('T')[0]);
+                currentValue *= (1 + (Math.random() - 0.5) * 0.04); // 더 안정적인 움직임
+                portfolioValues.push(currentValue);
+            }
+
+            const portfolioData = [{
+                x: dates,
+                y: portfolioValues,
+                type: 'scatter',
+                mode: 'lines',
+                name: '포트폴리오 가치',
+                line: {color: 'blue', width: 3}
+            }];
+
+            const portfolioLayout = {
+                title: '3개월 리밸런싱 - 포트폴리오 가치 변화',
+                xaxis: {title: '날짜'},
+                yaxis: {title: '포트폴리오 가치 ($)'},
+                height: 400
+            };
+
+            Plotly.newPlot('quarterlyPortfolioChart', portfolioData, portfolioLayout);
+
+            // 자산별 가치 차트
+            const soxlValues = portfolioValues.map(v => v * 0.75);
+            const vxxValues = portfolioValues.map(v => v * 0.25);
+
+            const assetData = [
+                {
+                    x: dates,
+                    y: soxlValues,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'SOXL (75%)',
+                    line: {color: 'green', width: 2}
+                },
+                {
+                    x: dates,
+                    y: vxxValues,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'VXX (25%)',
+                    line: {color: 'red', width: 2}
+                }
+            ];
+
+            const assetLayout = {
+                title: '3개월 리밸런싱 - 자산별 가치',
+                xaxis: {title: '날짜'},
+                yaxis: {title: '자산 가치 ($)'},
+                height: 400
+            };
+
+            Plotly.newPlot('quarterlyAssetChart', assetData, assetLayout);
+
+            // 수익률 차트
+            const returns = portfolioValues.map((v, i) => 
+                i > 0 ? (v - portfolioValues[i-1]) / portfolioValues[i-1] * 100 : 0
+            );
+
+            const returnsData = [{
+                x: dates,
+                y: returns,
+                type: 'scatter',
+                mode: 'lines',
+                name: '일간 수익률',
+                line: {color: 'purple', width: 1}
+            }];
+
+            const returnsLayout = {
+                title: '3개월 리밸런싱 - 일간 수익률',
+                xaxis: {title: '날짜'},
+                yaxis: {title: '수익률 (%)'},
+                height: 300
+            };
+
+            Plotly.newPlot('quarterlyReturnsChart', returnsData, returnsLayout);
+        }
+
+        // 비교 차트
+        function renderComparisonChart() {
+            const data = [{
+                x: ['총 수익률', '연간 수익률', '샤프 비율'],
+                y: [
+                    simulationData.monthly.totalReturn * 100, 
+                    simulationData.quarterly.totalReturn * 100,
+                    simulationData.monthly.annualReturn * 100,
+                    simulationData.quarterly.annualReturn * 100,
+                    simulationData.monthly.sharpeRatio,
+                    simulationData.quarterly.sharpeRatio
+                ],
+                type: 'bar',
+                marker: {
+                    color: ['#667eea', '#00b894', '#667eea', '#00b894', '#667eea', '#00b894']
+                },
+                name: '지표 비교'
+            }];
+
+            const layout = {
+                title: '리밸런싱 전략별 성과 지표 비교',
+                xaxis: {title: '성과 지표'},
+                yaxis: {title: '값'},
+                height: 400
+            };
+
+            Plotly.newPlot('comparisonChart', data, layout);
+        }
+
+        // 초기 로드 시 요약 차트 렌더링
+        window.onload = function() {
+            renderSummaryChart();
+        };
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,25 @@
+{
+  "name": "soxl-vxx-rebalancing-calculator",
+  "version": "1.0.0",
+  "description": "SOXL-VXX Portfolio Rebalancing Calculator",
+  "main": "Rebalancing_Calculator.html",
+  "scripts": {
+    "start": "npx http-server . -p 8080"
+  },
+  "keywords": [
+    "etf",
+    "portfolio",
+    "rebalancing",
+    "soxl",
+    "vxx",
+    "calculator",
+    "investment"
+  ],
+  "author": "ETF Portfolio Analyzer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/soxl-vxx-calculator.git"
+  },
+  "homepage": "https://soxl-vxx-calculator.vercel.app"
+}

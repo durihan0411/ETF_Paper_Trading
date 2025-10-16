@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/Rebalancing_Calculator.html"
+    },
+    {
+      "source": "/calculator",
+      "destination": "/Rebalancing_Calculator.html"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/Paper_Trading_Dashboard.html"
+    }
+  ]
+}
